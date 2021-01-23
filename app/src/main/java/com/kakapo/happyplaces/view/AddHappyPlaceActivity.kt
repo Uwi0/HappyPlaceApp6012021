@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -32,6 +33,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
 
     companion object{
         private const val GALLERY_REQUEST_CODE = 1
+        private const val CAMERA_REQUEST_CODE = 2
     }
 
     private lateinit var toolbar: Toolbar
@@ -98,11 +100,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                 pictureDialog.setItems(pictureDialogItems){ _, which ->
                     when(which){
                         0 -> choosePhotoFromGallery()
-                        1 -> Toast.makeText(
-                                this@AddHappyPlaceActivity,
-                                "Camera Selection Coming Soon....",
-                                Toast.LENGTH_SHORT
-                        ).show()
+                        1 -> takePhotoFromCamera()
                     }
                 }
                 pictureDialog.show()
@@ -113,24 +111,37 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(resultCode == Activity.RESULT_OK){
-            if(data != null){
-                val contentUri = data.data
-                try{
 
-                    val selectedImageBitmap =
-                            MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
-                    ivPlaceImage.setImageBitmap(selectedImageBitmap)
+            if(requestCode == GALLERY_REQUEST_CODE){
 
-                }catch (e: IOException){
-                    println("Error try get image from gallery: ${e.message}")
-                    e.printStackTrace()
-                    Toast.makeText(
-                            this@AddHappyPlaceActivity,
-                            "Failed to load image from Gallery!",
-                            Toast.LENGTH_SHORT
-                    ).show()
+                if(data != null){
+                    val contentUri = data.data
+                    try{
+
+                        val selectedImageBitmap =
+                                MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
+                        ivPlaceImage.setImageBitmap(selectedImageBitmap)
+
+                    }catch (e: IOException){
+
+                        println("Error try get image from gallery: ${e.message}")
+                        e.printStackTrace()
+                        Toast.makeText(
+                                this@AddHappyPlaceActivity,
+                                "Failed to load image from Gallery!",
+                                Toast.LENGTH_SHORT
+                        ).show()
+                        
+                    }
                 }
+
+            }else if(requestCode == CAMERA_REQUEST_CODE){
+
+                val thumbnail: Bitmap = data!!.extras!!.get("data") as Bitmap
+                ivPlaceImage.setImageBitmap(thumbnail)
+
             }
+
         }
     }
 
@@ -191,5 +202,28 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                 .show()
     }
 
+    private fun takePhotoFromCamera(){
+        Dexter.withActivity(this).withPermissions(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
+        ).withListener(object: MultiplePermissionsListener {
 
+            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                if(report!!.areAllPermissionsGranted()){
+                    val galleryIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+                    startActivityForResult(galleryIntent, CAMERA_REQUEST_CODE)
+                }
+            }
+
+            override fun onPermissionRationaleShouldBeShown(
+                    permissions: MutableList<PermissionRequest>?,
+                    token: PermissionToken?
+            ) {
+                showRationalDialogFormPermissions()
+            }
+
+        }).onSameThread().check()
+    }
 }

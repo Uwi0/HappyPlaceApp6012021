@@ -5,6 +5,8 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -12,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
@@ -24,7 +27,10 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +40,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
     companion object{
         private const val GALLERY_REQUEST_CODE = 1
         private const val CAMERA_REQUEST_CODE = 2
+        private const val IMAGE_DIRECTORY = "HappyPlacesImages"
     }
 
     private lateinit var toolbar: Toolbar
@@ -120,6 +127,11 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
 
                         val selectedImageBitmap =
                                 MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
+                        val saveImageToInternalStorage =
+                                saveImageToInternalStorage(selectedImageBitmap)
+
+                        Log.e("saveImage", "Path :: $saveImageToInternalStorage")
+
                         ivPlaceImage.setImageBitmap(selectedImageBitmap)
 
                     }catch (e: IOException){
@@ -131,13 +143,18 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                                 "Failed to load image from Gallery!",
                                 Toast.LENGTH_SHORT
                         ).show()
-                        
+
                     }
                 }
 
             }else if(requestCode == CAMERA_REQUEST_CODE){
 
                 val thumbnail: Bitmap = data!!.extras!!.get("data") as Bitmap
+                val saveImageToInternalStorage =
+                        saveImageToInternalStorage(thumbnail)
+
+                Log.e("saveImage", "Path :: $saveImageToInternalStorage")
+
                 ivPlaceImage.setImageBitmap(thumbnail)
 
             }
@@ -225,5 +242,25 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
             }
 
         }).onSameThread().check()
+    }
+
+    private fun saveImageToInternalStorage(bitmap: Bitmap) : Uri{
+        val wrapper = ContextWrapper(applicationContext)
+        var file = wrapper.getDir(IMAGE_DIRECTORY, Context.MODE_PRIVATE)
+        file = File(file, "${UUID.randomUUID()}.jpg")
+
+        try{
+
+            val stream: OutputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            stream.flush()
+            stream.close()
+
+        }catch (e: IOException){
+            println("Error try to save image to directory : ${e.message}")
+            e.printStackTrace()
+        }
+
+        return Uri.parse(file.absolutePath)
     }
 }

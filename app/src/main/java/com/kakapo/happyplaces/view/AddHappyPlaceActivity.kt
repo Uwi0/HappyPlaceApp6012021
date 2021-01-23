@@ -1,6 +1,7 @@
 package com.kakapo.happyplaces.view
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
@@ -8,9 +9,11 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
@@ -20,14 +23,21 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Suppress("DEPRECATION")
 class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
+
+    companion object{
+        private const val GALLERY_REQUEST_CODE = 1
+    }
 
     private lateinit var toolbar: Toolbar
     private lateinit var etDate: EditText
     private lateinit var tvAddImage: TextView
+    private lateinit var ivPlaceImage: ImageView
 
     private var calendar = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
@@ -39,6 +49,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
         toolbar = findViewById(R.id.toolbar_add_place)
         etDate = findViewById(R.id.et_date)
         tvAddImage = findViewById(R.id.tv_add_image)
+        ivPlaceImage = findViewById(R.id.iv_place_image)
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -99,6 +110,30 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(resultCode == Activity.RESULT_OK){
+            if(data != null){
+                val contentUri = data.data
+                try{
+
+                    val selectedImageBitmap =
+                            MediaStore.Images.Media.getBitmap(this.contentResolver, contentUri)
+                    ivPlaceImage.setImageBitmap(selectedImageBitmap)
+
+                }catch (e: IOException){
+                    println("Error try get image from gallery: ${e.message}")
+                    e.printStackTrace()
+                    Toast.makeText(
+                            this@AddHappyPlaceActivity,
+                            "Failed to load image from Gallery!",
+                            Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
     private fun updateDateInView(){
         val myFormat = "dd.MM.yyyy"
         val simpleDateFormat = SimpleDateFormat(myFormat, Locale.getDefault())
@@ -113,12 +148,12 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
 
             override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                 if(report!!.areAllPermissionsGranted()){
-                    Toast.makeText(
-                            this@AddHappyPlaceActivity,
-                            "READ/WRITE permission are granted. Now you can select an " +
-                                    "image from gallery",
-                            Toast.LENGTH_SHORT
-                    ).show()
+                    val galleryIntent = Intent(
+                            Intent.ACTION_PICK,
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    )
+
+                    startActivityForResult(galleryIntent, GALLERY_REQUEST_CODE)
                 }
             }
 
@@ -155,4 +190,6 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                 }
                 .show()
     }
+
+
 }

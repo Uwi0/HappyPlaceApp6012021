@@ -1,4 +1,4 @@
-package com.kakapo.happyplaces.Activities
+package com.kakapo.happyplaces.activities
 
 import android.Manifest
 import android.app.Activity

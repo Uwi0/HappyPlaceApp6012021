@@ -45,4 +45,5 @@ dependencies {
 
     //third party library
     implementation 'com.karumi:dexter:6.0.1'
+    implementation 'de.hdodenhof:circleimageview:3.0.1'
 }

@@ -1,5 +1,6 @@
 package com.kakapo.happyplaces.activities
 
+import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -16,6 +17,11 @@ import com.kakapo.happyplaces.model.HappyPlaceModel
 
 class MainActivity : AppCompatActivity() {
 
+    companion object{
+        private const val ADD_PLACE_ACTIVITY_REQUEST_CODE = 1
+        const val EXTRA_PLACE_DETAIL = "extra_place_detail"
+    }
+
     private lateinit var fabAddHappyPlace: FloatingActionButton
     private lateinit var rvHappyPlaceList: RecyclerView
     private lateinit var tvNoRecordsAvailable: TextView
@@ -30,10 +36,21 @@ class MainActivity : AppCompatActivity() {
 
         fabAddHappyPlace.setOnClickListener {
             val intent = Intent(this, AddHappyPlaceActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, ADD_PLACE_ACTIVITY_REQUEST_CODE)
         }
 
         getHappyPlaceListFromLocalDatabase()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == ADD_PLACE_ACTIVITY_REQUEST_CODE){
+            if(resultCode == Activity.RESULT_OK){
+                getHappyPlaceListFromLocalDatabase()
+            }
+        }else{
+            Log.e("Activity", "cancelled or back pressed")
+        }
     }
 
     private fun getHappyPlaceListFromLocalDatabase(){
@@ -50,7 +67,7 @@ class MainActivity : AppCompatActivity() {
 
             rvHappyPlaceList.visibility = View.GONE
             tvNoRecordsAvailable.visibility = View.VISIBLE
-            
+
         }
     }
 
@@ -60,5 +77,16 @@ class MainActivity : AppCompatActivity() {
 
         val adapter = HappyPlaceAdapter(happyPlaceList)
         rvHappyPlaceList.adapter = adapter
+
+        adapter.setOnclickListener(object : HappyPlaceAdapter.OnclickListener {
+            override fun onclick(position: Int, model: HappyPlaceModel) {
+                val intent = Intent(
+                        this@MainActivity,
+                        HappyPlaceDetailActivity::class.java
+                )
+                intent.putExtra(EXTRA_PLACE_DETAIL, model)
+                startActivity(intent)
+            }
+        })
     }
 }

@@ -14,6 +14,8 @@ class HappyPlaceAdapter(
     private var list: ArrayList<HappyPlaceModel>
 ) : RecyclerView.Adapter<HappyPlaceAdapter.ViewHolder>() {
 
+    private var onClickListener: OnclickListener? = null
+
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view){
 
         val ivPlaceImage: ImageView = view.findViewById(R.id.iv_place_image)
@@ -40,9 +42,22 @@ class HappyPlaceAdapter(
         holder.tvTitle.text = model.title
         holder.tvDescription.text = model.description
 
+        holder.itemView.setOnClickListener {
+            if(onClickListener != null){
+                onClickListener!!.onclick(position, model)
+            }
+        }
     }
 
     override fun getItemCount(): Int {
         return list.size
+    }
+
+    fun setOnclickListener(onClickListener: OnclickListener){
+        this.onClickListener = onClickListener
+    }
+
+    interface OnclickListener{
+        fun onclick(position: Int, model: HappyPlaceModel)
     }
 }

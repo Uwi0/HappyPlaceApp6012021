@@ -1,5 +1,8 @@
 package com.kakapo.happyplaces.adapter
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +11,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kakapo.happyplaces.R
+import com.kakapo.happyplaces.activities.AddHappyPlaceActivity
+import com.kakapo.happyplaces.activities.MainActivity
 import com.kakapo.happyplaces.model.HappyPlaceModel
 
 class HappyPlaceAdapter(
@@ -55,6 +60,13 @@ class HappyPlaceAdapter(
 
     fun setOnclickListener(onClickListener: OnclickListener){
         this.onClickListener = onClickListener
+    }
+
+    fun notifyEditItem(context: Context, activity: Activity, position: Int, requestCode: Int){
+        val intent = Intent(context, AddHappyPlaceActivity::class.java)
+        intent.putExtra(MainActivity.EXTRA_PLACE_DETAIL, list[position])
+        activity.startActivityForResult(intent, requestCode)
+        notifyItemChanged(position)
     }
 
     interface OnclickListener{

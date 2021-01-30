@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -14,6 +15,7 @@ import com.kakapo.happyplaces.R
 import com.kakapo.happyplaces.adapter.HappyPlaceAdapter
 import com.kakapo.happyplaces.database.DatabaseHandler
 import com.kakapo.happyplaces.model.HappyPlaceModel
+import com.kakapo.happyplaces.utils.SwipeToEditCallBack
 
 class MainActivity : AppCompatActivity() {
 
@@ -88,5 +90,21 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         })
+
+        val editSwipeHandler = object : SwipeToEditCallBack(this) {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val adapterSwipe = rvHappyPlaceList.adapter as HappyPlaceAdapter
+                adapterSwipe.notifyEditItem(
+                        this@MainActivity,
+                        this@MainActivity,
+                        viewHolder.adapterPosition,
+                        ADD_PLACE_ACTIVITY_REQUEST_CODE
+                )
+            }
+
+        }
+
+        val editItemTouchHelper = ItemTouchHelper(editSwipeHandler)
+        editItemTouchHelper.attachToRecyclerView(rvHappyPlaceList)
     }
 }

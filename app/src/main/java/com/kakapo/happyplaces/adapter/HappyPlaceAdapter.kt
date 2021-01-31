@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.kakapo.happyplaces.R
 import com.kakapo.happyplaces.activities.AddHappyPlaceActivity
 import com.kakapo.happyplaces.activities.MainActivity
-import com.kakapo.happyplaces.database.DatabaseHandler
 import com.kakapo.happyplaces.model.HappyPlaceModel
 
 class HappyPlaceAdapter(
@@ -68,15 +67,6 @@ class HappyPlaceAdapter(
         intent.putExtra(MainActivity.EXTRA_PLACE_DETAIL, list[position])
         activity.startActivityForResult(intent, requestCode)
         notifyItemChanged(position)
-    }
-
-    fun removeAt(context: Context, position: Int){
-        val dbHandler = DatabaseHandler(context)
-        val isDelete = dbHandler.deleteHappyPlace(list[position])
-        if(isDelete > 0){
-            list.removeAt(position)
-            notifyItemRemoved(position)
-        }
     }
 
     interface OnclickListener{

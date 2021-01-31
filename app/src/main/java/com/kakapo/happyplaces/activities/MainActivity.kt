@@ -15,7 +15,6 @@ import com.kakapo.happyplaces.R
 import com.kakapo.happyplaces.adapter.HappyPlaceAdapter
 import com.kakapo.happyplaces.database.DatabaseHandler
 import com.kakapo.happyplaces.model.HappyPlaceModel
-import com.kakapo.happyplaces.utils.SwipeToDeleteCallback
 import com.kakapo.happyplaces.utils.SwipeToEditCallBack
 
 class MainActivity : AppCompatActivity() {
@@ -107,18 +106,5 @@ class MainActivity : AppCompatActivity() {
 
         val editItemTouchHelper = ItemTouchHelper(editSwipeHandler)
         editItemTouchHelper.attachToRecyclerView(rvHappyPlaceList)
-
-        val deleteSwipeHandler = object : SwipeToDeleteCallback(this) {
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-
-                val adapterSwipe = rvHappyPlaceList.adapter as HappyPlaceAdapter
-                adapterSwipe.removeAt(this@MainActivity, viewHolder.adapterPosition)
-
-                getHappyPlaceListFromLocalDatabase()
-            }
-        }
-        val deleteItemTouchHelper = ItemTouchHelper(deleteSwipeHandler)
-        deleteItemTouchHelper.attachToRecyclerView(rvHappyPlaceList)
-
     }
 }
